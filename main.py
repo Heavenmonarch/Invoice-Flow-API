@@ -5,6 +5,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import logging
 
 from app.core.config import settings
+from app.core.database import init_db, close_db
 
 
 # Logging
@@ -16,10 +17,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
-    # await init_db()
+    await init_db()
     yield
     logger.info("Shutting down...")
-    # await close_db()
+    await close_db()
     
     
 # creating the app instance 
