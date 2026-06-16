@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import logging
 
+from app.core.config import settings
+
 
 # Logging
 
@@ -22,7 +24,14 @@ async def lifespan(app: FastAPI):
     
 # creating the app instance 
 
-app = FastAPI()
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="Commission tracking SaaS for sales organizations",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    lifespan=lifespan
+)
 
 
 # Middlewaree
