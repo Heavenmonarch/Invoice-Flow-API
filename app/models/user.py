@@ -15,7 +15,9 @@ class UserRole(str, PyEnum):
 class User (Base, TimestampMixin):
     __tablename__: "users"
     
-    id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, default=uuid.uuid4
+    )
     
     organization_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"), nullable=False)
     
