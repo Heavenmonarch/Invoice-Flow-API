@@ -18,3 +18,4 @@ class Organiztion(Base, TimestampMixin):
     
     # relationship definition
     user: Mapped[list["User"]] = relationship(back_populates="organization")
+    products: Mapped[list["Product"]] = relationship(back_populates="organization")
