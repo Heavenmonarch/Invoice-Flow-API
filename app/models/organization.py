@@ -5,7 +5,7 @@ from app.core.database import Base
 from app.models.base import TimestampMixin
 
 
-class Organiztion(Base, TimestampMixin):
+class Organization(Base, TimestampMixin):
     __tablename__= "organizations"
     
     id: Mapped[uuid.UUID] = mapped_column(
