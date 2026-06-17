@@ -33,3 +33,4 @@ class Product(Base, TimestampMixin):
     # relationships
     
     organization: Mapped["Organization"] = relationship(back_populates="products")
+    sales: Mapped[list["Sale"]] = relationship(back_populates="product")

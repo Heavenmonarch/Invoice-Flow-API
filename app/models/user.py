@@ -34,5 +34,5 @@ class User (Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     
     
-    # relationship definiaions
     organization: Mapped["Organization"] = relationship(back_populates="users")
+    sales: Mapped[list["Sale"]] = relationship(back_populates="staff")
