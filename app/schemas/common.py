@@ -16,3 +16,7 @@ class MessageResponse(BaseModel):
 class ErrorResponse(BaseModel):
     detail: str
     code: Optional[str] = None
+    
+class DeleteResponse(BaseModel):
+    message: str
+    code: int

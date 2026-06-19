@@ -47,7 +47,7 @@ def decode_token(token: str) -> dict:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            alrgorithms=[settings.ALGORITHM],
+            algorithms=[settings.ALGORITHM],
         )
         return payload
     except jwt.ExpiredSignatureError:
