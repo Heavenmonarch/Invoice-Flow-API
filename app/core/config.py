@@ -3,7 +3,7 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "CommissionTrack"
+    APP_NAME: str = "Invoice Flow"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     
