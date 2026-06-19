@@ -67,4 +67,37 @@ class SaleService:
     
     
     @staticmethod
-    
+    async def list_sales(
+        db: AsyncSession, organization_id: uuid.UUID,
+        staff_id: uuid.UUID = None, product_id: uuid.UUID = None,
+        date_from: datetime = None, date_to: datetime = None,
+        page: int = 1, per_page: int = 20
+    ) -> PaginatedResponse:
+        
+        query = select(Sale).where(Sale.organization_id == organization_id)
+        
+        if staff_id:
+            query = query.where(Sale.staff_id == staff_id)
+        if product_id:
+            query = query.where(Sale.product_id == product_id)
+        if date_from:
+            query = query.where(Sale.created_at >= date_from)
+        if date_to:
+            query = query.where(Sale.created_at <= date_to)
+            
+        
+        total = await db.scalar(select(func.count()).select_from(query.subquery()))
+        result = await db.execute(
+            query.order_by(Sale.created_at.desc())
+            .offset((page-1) * per_page)
+            .limit(per_page)
+        )
+        sales = result.scalars().all()
+        
+        return PaginatedResponse(
+            items=sales,
+            total=total,
+            page=page,
+            per_page=per_page,
+            pages=-(-total // per_page)
+        )
