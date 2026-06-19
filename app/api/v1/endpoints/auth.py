@@ -81,3 +81,29 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     
     
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        token_data = decode_token(payload.refresh_token)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    
+    if token_data.get("type") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
+    
+    result = await db.execute(select(User).where(User.id == token_data["sub"]))
+    user = result.scalar_one_or_none()
+    
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found or inactive")
+    
+    access_token = create_access_token(
+        subject=user.id,
+        extra_claims={"role": user.role.value, "org_id": str(user.organization_id)}
+    )
+    
+    refresh_token = create_refresh_token(subject=user.id)
+    
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
