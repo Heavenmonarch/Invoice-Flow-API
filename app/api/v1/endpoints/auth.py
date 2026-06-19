@@ -51,3 +51,8 @@ async def register(payload: OrganizationCreate,db: AsyncSession = Depends(get_db
     await db.refresh(org)
     
     return org
+
+
+@router.post("/login", response_model=TokenResponse)
+async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    pass

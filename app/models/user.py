@@ -13,7 +13,7 @@ class UserRole(str, PyEnum):
     
 
 class User (Base, TimestampMixin):
-    __tablename__: "users"
+    __tablename__ = "users"
     
     id: Mapped[uuid.UUID] = mapped_column(
         primary_key=True, default=uuid.uuid4
@@ -25,7 +25,7 @@ class User (Base, TimestampMixin):
     
     full_name: Mapped[str] = mapped_column(String(50), nullable=False)
     
-    password: Mapped[str] = mapped_column(String(50), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole), default=UserRole.STAFF,nullable=False,

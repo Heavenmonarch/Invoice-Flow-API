@@ -6,7 +6,7 @@ from app.models.base import TimestampMixin
 
 
 class Sale(Base, TimestampMixin):
-    __tablename__: "sales"
+    __tablename__ = "sales"
     
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     

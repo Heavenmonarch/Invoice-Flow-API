@@ -6,7 +6,7 @@ from app.models.base import TimestampMixin
 
 
 class Organization(Base, TimestampMixin):
-    __tablename__= "organizations"
+    __tablename__ = "organizations"
     
     id: Mapped[uuid.UUID] = mapped_column(
         primary_key=True, default=uuid.uuid4
@@ -17,5 +17,5 @@ class Organization(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     
     # relationship definition
-    user: Mapped[list["User"]] = relationship(back_populates="organization")
+    users: Mapped[list["User"]] = relationship(back_populates="organization")
     products: Mapped[list["Product"]] = relationship(back_populates="organization")

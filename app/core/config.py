@@ -2,10 +2,11 @@ from pydantic_settings import BaseSettings
 from typing import List
 
 
+
 class Settings(BaseSettings):
-    APP_NAME: str = "Invoice Flow"
+    APP_NAME: str = "Commission Flow"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = False
+    DEBUG: bool = True
     
     DATABASE_URL: str
     

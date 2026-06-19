@@ -6,6 +6,7 @@ import logging
 
 from app.core.config import settings
 from app.core.database import init_db, close_db
+from app.api.v1.router import api_router
 
 
 # Logging
@@ -50,7 +51,7 @@ app.add_middleware(
 
 
 # routes
-app.include_router(prefix="/api/v1")
+app.include_router(api_router, prefix="/api/v1")
 
 
 #Health Checking

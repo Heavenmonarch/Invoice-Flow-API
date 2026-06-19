@@ -29,8 +29,15 @@ class Base(DeclarativeBase):
 
 async def init_db():
     logger.info("Connecting to database...")
+    from app.models.organization import Organization
+    from app.models.commission import Commission
+    from app.models.product import Product
+    from app.models.sale import Sale
+    from app.models.user import User
+    
     async with engine.begin() as conn:
         logger.info("Database connection established.")
+        await conn.run_sync(Base.metadata.create_all)
         
 
 async def close_db():
