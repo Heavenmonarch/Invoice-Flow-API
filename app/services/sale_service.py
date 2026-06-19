@@ -36,4 +36,35 @@ class SaleService:
         period = now.strftime("%Y-%m")
         
         # creating the sale record after getting prerequired data
+        sale = Sale(
+            organization_id=current_user.organization_id,
+            staff_id=current_user.id,
+            quantity=payload.quantity,
+            unit_price=unit_price,
+            total_amount=total_amount,
+            commission_rate=commission_rate,
+            commission_amount=commission_amount,
+            notes=payload.notes
+        )
         
+        db.add(sale)
+        await db.flush()
+        
+        # Auto-create commission record after a sale record has been creatd innit
+        commission = Commission(
+            organization_id = current_user.organization_id,
+            staff_id=current_user.id,
+            sale_id=sale.id,
+            amount=commission_amount,
+            status=CommissionStatus.PENDING,
+            period=period,
+        )
+        
+        db.add(commission)
+        await db.commit()
+        await db.refresh(sale)
+        return sale
+    
+    
+    @staticmethod
+    
