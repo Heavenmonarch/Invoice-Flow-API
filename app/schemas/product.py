@@ -24,7 +24,7 @@ class ProductCreate(BaseModel):
     def commision_rate_must_be_valid(cls, v):
         if not (0 < v <= 100):
             raise ValueError("Commission rate must be between 0 and 100")
-        
+        return round(v, 2)
 
 class ProductUpdate(BaseModel):
     name: str | None = None

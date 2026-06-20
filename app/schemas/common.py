@@ -13,6 +13,7 @@ class PaginatedResponse (BaseModel, Generic[T]):
 class MessageResponse(BaseModel):
     message: str
     
+        
 class ErrorResponse(BaseModel):
     detail: str
     code: Optional[str] = None

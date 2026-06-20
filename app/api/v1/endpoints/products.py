@@ -16,7 +16,7 @@ router = APIRouter()
 @router.post("/create-product", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
 async def create_product(payload: ProductCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_admin)):
     
-    product = Product(**payload.model_dump, organization_id=current_user.organization_id)
+    product = Product(**payload.model_dump(), organization_id=current_user.organization_id)
     db.add(product)
     
     await db.commit()

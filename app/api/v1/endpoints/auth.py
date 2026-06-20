@@ -18,39 +18,14 @@ router = APIRouter()
 
 @router.post("/register", response_model=OrganizationOut, status_code=status.HTTP_201_CREATED)
 async def register(payload: OrganizationCreate,db: AsyncSession = Depends(get_db)):
-    return AuthService.register_user(payload, db)
+    return await AuthService.register_organization(payload, db)
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == payload.email))
-    user = result.scalar_one_or_none()
-    
-    if not user or not verify_password(payload.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-        
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is deactivated",
-        )
-    
-    access_token = create_access_token(
-        subject=user.id,
-        extra_claims={
-            "role": user.role.value,
-            "org_id": str(user.organization_id),
-        }
-    )
-    refresh_token = create_refresh_token(subject=user.id)
+    return await AuthService.login_user(payload, db)
     
     
-    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
-
-
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
     try:
