@@ -66,3 +66,78 @@ class UserService:
             per_page=per_page,
             pages=-(-total // per_page)
         )
+        
+    @staticmethod
+    async def get_user(
+        user_id: uuid.UUID,
+        organization_id: uuid.UUID,
+        db: AsyncSession,
+    ) -> User:
+        result = await db.execute(
+            select(User).where(
+                User.id == user_id,
+                User.organization_id == organization_id,
+            )
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        return user
+
+    @staticmethod
+    async def update_user(
+        user_id: uuid.UUID,
+        payload: UserUpdate,
+        organization_id: uuid.UUID,
+        db: AsyncSession,
+    ) -> User:
+        user = await UserService.get_user(user_id, organization_id, db)
+
+        if user.role == UserRole.SUPERADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Superadmin account cannot be modified",
+            )
+
+        updates = payload.model_dump(exclude_unset=True)
+        if "email" in updates:
+            existing = await db.execute(
+                select(User).where(
+                    User.email == updates["email"],
+                    User.id != user_id,
+                )
+            )
+            if existing.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Email already in use",
+                )
+
+        for field, value in updates.items():
+            setattr(user, field, value)
+
+        await db.commit()
+        await db.refresh(user)
+        return user
+
+    @staticmethod
+    async def deactivate_user(
+        user_id: uuid.UUID,
+        organization_id: uuid.UUID,
+        db: AsyncSession,
+    ) -> User:
+        user = await UserService.get_user(user_id, organization_id, db)
+
+        if user.role == UserRole.SUPERADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Superadmin account cannot be deactivated",
+            )
+
+        user.is_active = False
+        await db.commit()
+        await db.refresh(user)
+        return user
