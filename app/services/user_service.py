@@ -102,6 +102,7 @@ class UserService:
                 detail="Superadmin account cannot be modified",
             )
 
+        
         updates = payload.model_dump(exclude_unset=True)
         if "email" in updates:
             existing = await db.execute(

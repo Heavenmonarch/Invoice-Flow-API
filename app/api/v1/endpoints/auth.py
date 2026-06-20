@@ -14,7 +14,7 @@ async def register(
     payload: OrganizationCreate,
     db: AsyncSession = Depends(get_db),
 ):
-    return await AuthService.register(payload, db)
+    return await AuthService.register_organization(payload, db)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -22,7 +22,7 @@ async def login(
     payload: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    return await AuthService.login(payload, db)
+    return await AuthService.login_user(payload, db)
 
 
 @router.post("/refresh", response_model=TokenResponse)

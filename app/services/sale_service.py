@@ -101,3 +101,27 @@ class SaleService:
             per_page=per_page,
             pages=-(-total // per_page)
         )
+        
+    @staticmethod
+    async def get_sale(
+        sale_id: uuid.UUID,
+        current_user: User,
+        db: AsyncSession,
+    ) -> Sale:
+        from app.models.user import UserRole
+        query = select(Sale).where(
+            Sale.id == sale_id,
+            Sale.organization_id == current_user.organization_id,
+        )
+    
+        if current_user.role == UserRole.STAFF:
+            query = query.where(Sale.staff_id == current_user.id)
+
+        result = await db.execute(query)
+        sale = result.scalar_one_or_none()
+        if not sale:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sale not found",
+            )
+        return sale
