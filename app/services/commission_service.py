@@ -41,6 +41,30 @@ class ComissionService:
         )
         
         
+    @staticmethod
+    async def get_commission(
+        commission_id: uuid.UUID,
+        current_user: User,
+        db: AsyncSession,
+    ) -> Commission:
+        from app.models.user import UserRole
+        query = select(Commission).where(
+            Commission.id == commission_id,
+            Commission.organization_id == current_user.organization_id,
+        )
+        # Staff can only see their own commissions
+        if current_user.role == UserRole.STAFF:
+            query = query.where(Commission.staff_id == current_user.id)
+
+        result = await db.execute(query)
+        commission = result.scalar_one_or_none()
+        if not commission:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Commission not found",
+            )
+        return commission
+        
     
 
         
