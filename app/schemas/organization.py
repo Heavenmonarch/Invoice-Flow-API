@@ -18,3 +18,7 @@ class OrganizationOut(BaseModel):
     created_at: datetime
     
     model_config = {"from_attributes": True}
+    
+class OrganizationUpdate(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None

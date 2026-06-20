@@ -39,7 +39,7 @@ class UserService:
             is_active=True
         )
         
-        db.add(User)
+        db.add(user)
         
         await db.commit()
         
