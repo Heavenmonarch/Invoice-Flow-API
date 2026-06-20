@@ -1,76 +1,62 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 from fastapi import HTTPException, status
-import uuid
-
+from uuid import UUID
+from typing import Optional
 
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate
 from app.schemas.common import PaginatedResponse
+from app.repositories.product_repository import ProductRepository
 
 
 class ProductService:
+
     @staticmethod
-    async def create_product (
+    async def create_product(
         payload: ProductCreate,
-        organization_id: uuid.UUID,
-        db: AsyncSession
+        organization_id: UUID,
+        db: AsyncSession,
     ) -> Product:
+        product_repo = ProductRepository(db)
+
         product = Product(
             **payload.model_dump(),
-            organization_id=organization_id
+            organization_id=organization_id,
         )
-        db.add(product)
-        
+        product = await product_repo.create(product)
         await db.commit()
-        
         await db.refresh(product)
-        
         return product
-    
+
     @staticmethod
     async def list_products(
-        db: AsyncSession, organization_id: uuid.UUID,
-        category: str = None,
+        db: AsyncSession,
+        organization_id: UUID,
+        category: Optional[str] = None,
         include_inactive: bool = False,
-        page: int = 1, per_page: int = 20
+        page: int = 1,
+        per_page: int = 20,
     ) -> PaginatedResponse:
-        query = select(Product).where(Product.organization_id == organization_id)
-        
-        if not include_inactive:
-            query = query.where(Product.is_active == True)
-        if category:
-            query = query.where(Product.category == category)
-            
-        total = await db.scalar(select(func.count()).select_from(query.subquery()))
-        result = await db.execute(
-            query.order_by(Product.created_at.desc())
-            .offset((page - 1) * per_page)
-            .limit(per_page)
+        product_repo = ProductRepository(db)
+        products, total = await product_repo.list_by_org(
+            organization_id, category, include_inactive, page, per_page
         )
-        products = result.scalars().all()
-
         return PaginatedResponse(
             items=products,
             total=total,
             page=page,
             per_page=per_page,
+            pages=-(-total // per_page),
         )
-        
-    
+
     @staticmethod
     async def get_product(
-        product_id: uuid.UUID,
-        organization_id: uuid.UUID,
+        product_id: UUID,
+        organization_id: UUID,
         db: AsyncSession,
     ) -> Product:
-        result = await db.execute(
-            select(Product).where(
-                Product.id == product_id,
-                Product.organization_id == organization_id,
-            )
-        )
-        product = result.scalar_one_or_none()
+        product_repo = ProductRepository(db)
+        product = await product_repo.get_by_id_and_org(product_id, organization_id)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -80,42 +66,58 @@ class ProductService:
 
     @staticmethod
     async def update_product(
-        product_id: uuid.UUID,
+        product_id: UUID,
         payload: ProductUpdate,
-        organization_id: uuid.UUID,
+        organization_id: UUID,
         db: AsyncSession,
     ) -> Product:
-        product = await ProductService.get_product(product_id, organization_id, db)
+        product_repo = ProductRepository(db)
+        product = await product_repo.get_by_id_and_org(product_id, organization_id)
+
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found",
+            )
 
         for field, value in payload.model_dump(exclude_unset=True).items():
             setattr(product, field, value)
 
-        await db.commit()
-        await db.refresh(product)
-        return product
+        return await product_repo.save(product)
 
     @staticmethod
     async def deactivate_product(
-        product_id: uuid.UUID,
-        organization_id: uuid.UUID,
+        product_id: UUID,
+        organization_id: UUID,
         db: AsyncSession,
     ) -> Product:
-        product = await ProductService.get_product(product_id, organization_id, db)
+        product_repo = ProductRepository(db)
+        product = await product_repo.get_by_id_and_org(product_id, organization_id)
+
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found",
+            )
+
         product.is_active = False
-        await db.commit()
-        await db.refresh(product)
-        return product
+        return await product_repo.save(product)
 
     @staticmethod
     async def add_image_urls(
-        product_id: uuid.UUID,
-        organization_id: uuid.UUID,
+        product_id: UUID,
+        organization_id: UUID,
         urls: list[str],
         db: AsyncSession,
     ) -> Product:
-        product = await ProductService.get_product(product_id, organization_id, db)
-        existing = product.image_urls or []
-        product.image_urls = existing + urls
-        await db.commit()
-        await db.refresh(product)
-        return product
+        product_repo = ProductRepository(db)
+        product = await product_repo.get_by_id_and_org(product_id, organization_id)
+
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found",
+            )
+
+        product.image_urls = (product.image_urls or []) + urls
+        return await product_repo.save(product)
