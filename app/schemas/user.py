@@ -6,13 +6,15 @@ from datetime import datetime
 
 class UserCreate(BaseModel):
     email: EmailStr
-    full_name: str
+    firstname: str
+    lastname: str
     password: str
     role: UserRole = UserRole.STAFF
     
     
 class UserUpdate(BaseModel):
-    full_name: str | None = None
+    firstname: str | None = None
+    lastname: str | None = None
     email: EmailStr | None = None
     is_active: bool | None = None
     
