@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
-import re
+
 
 from app.models.user import User, UserRole
 from app.models.organization import Organization
@@ -14,7 +14,7 @@ from app.core.security import (
 )
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
 from app.schemas.organization import OrganizationCreate
-
+from app.utils.utils import slugify
 
 
 class AuthService:
