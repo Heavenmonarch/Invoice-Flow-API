@@ -6,6 +6,7 @@ import logging
 
 from app.core.config import settings
 from app.core.database import init_db, close_db
+from app.core.exceptions import register_exception_handlers
 from app.api.v1.router import api_router
 
 
@@ -34,6 +35,7 @@ app = FastAPI(
     redoc_url="/redoc" if settings.DEBUG else None,
     lifespan=lifespan
 )
+register_exception_handlers(app)
 
 
 # Middlewaree
