@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 from datetime import datetime, timezone
 from uuid import UUID
 from typing import Optional
@@ -7,6 +6,7 @@ from typing import Optional
 from app.models.sale import Sale
 from app.models.commission import Commission, CommissionStatus
 from app.models.user import User, UserRole
+from app.core.exceptions import NotFoundException
 from app.schemas.sale import SaleCreate
 from app.schemas.common import PaginatedResponse
 from app.repositories.product_repository import ProductRepository
@@ -30,10 +30,7 @@ class SaleService:
             payload.product_id, current_user.organization_id
         )
         if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Product not found or is inactive",
-            )
+            raise NotFoundException("Product not found or is inactive")
 
         unit_price = float(product.price)
         commission_rate = float(product.commission_rate)
@@ -98,20 +95,12 @@ class SaleService:
         db: AsyncSession,
     ) -> Sale:
         sale_repo = SaleRepository(db)
-
-        if current_user.role == UserRole.STAFF:
-            sale = await sale_repo.get_by_id_and_org(sale_id, current_user.organization_id)
-            if not sale or sale.staff_id != current_user.id:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Sale not found",
-                )
-            return sale
-
         sale = await sale_repo.get_by_id_and_org(sale_id, current_user.organization_id)
+
         if not sale:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Sale not found",
-            )
+            raise NotFoundException("Sale not found")
+
+        if current_user.role == UserRole.STAFF and sale.staff_id != current_user.id:
+            raise NotFoundException("Sale not found")
+
         return sale

@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 from uuid import UUID
 from typing import Optional
 
 from app.models.commission import Commission, CommissionStatus
 from app.models.user import User, UserRole
+from app.core.exceptions import NotFoundException, BadRequestException
 from app.schemas.commission import CommissionUpdate, CommissionSummary
 from app.schemas.common import PaginatedResponse
 from app.repositories.commission_repository import CommissionRepository
@@ -47,17 +47,13 @@ class CommissionService:
         )
 
         if not commission:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Commission not found",
-            )
+            raise NotFoundException("Commission not found")
 
-        # Staff can only see their own
-        if current_user.role == UserRole.STAFF and commission.staff_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Commission not found",
-            )
+        if (
+            current_user.role == UserRole.STAFF
+            and commission.staff_id != current_user.id
+        ):
+            raise NotFoundException("Commission not found")
 
         return commission
 
@@ -74,22 +70,18 @@ class CommissionService:
         )
 
         if not commission:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Commission not found",
-            )
+            raise NotFoundException("Commission not found")
 
-        # Enforce valid status transitions
         invalid_transitions = {
             CommissionStatus.PAID: [
                 CommissionStatus.PENDING,
                 CommissionStatus.DISPUTED,
             ],
         }
+
         if commission.status in invalid_transitions.get(payload.status, []):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Cannot move commission from '{commission.status}' to '{payload.status}'",
+            raise BadRequestException(
+                f"Cannot move commission from '{commission.status}' to '{payload.status}'"
             )
 
         commission.status = payload.status

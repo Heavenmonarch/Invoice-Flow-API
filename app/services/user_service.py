@@ -1,9 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 from uuid import UUID
 
 from app.models.user import User, UserRole
 from app.core.security import hash_password
+from app.core.exceptions import (
+    NotFoundException,
+    ConflictException,
+    BadRequestException,
+)
 from app.schemas.user import UserCreate, UserUpdate
 from app.schemas.common import PaginatedResponse
 from app.repositories.user_repository import UserRepository
@@ -20,16 +24,10 @@ class UserService:
         user_repo = UserRepository(db)
 
         if payload.role == UserRole.SUPERADMIN:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Superadmin role cannot be assigned manually",
-            )
+            raise BadRequestException("Superadmin role cannot be assigned manually")
 
         if await user_repo.email_taken(payload.email):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="A user with this email already exists",
-            )
+            raise ConflictException("A user with this email already exists")
 
         user = User(
             organization_id=organization_id,
@@ -72,10 +70,7 @@ class UserService:
         user_repo = UserRepository(db)
         user = await user_repo.get_by_id_and_org(user_id, organization_id)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
+            raise NotFoundException("User not found")
         return user
 
     @staticmethod
@@ -89,25 +84,16 @@ class UserService:
         user = await user_repo.get_by_id_and_org(user_id, organization_id)
 
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
+            raise NotFoundException("User not found")
 
         if user.role == UserRole.SUPERADMIN:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Superadmin account cannot be modified",
-            )
+            raise BadRequestException("Superadmin account cannot be modified")
 
         updates = payload.model_dump(exclude_unset=True)
 
         if "email" in updates:
             if await user_repo.email_taken(updates["email"], exclude_id=user_id):
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail="Email already in use",
-                )
+                raise ConflictException("Email already in use")
 
         for field, value in updates.items():
             setattr(user, field, value)
@@ -124,16 +110,10 @@ class UserService:
         user = await user_repo.get_by_id_and_org(user_id, organization_id)
 
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
+            raise NotFoundException("User not found")
 
         if user.role == UserRole.SUPERADMIN:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Superadmin account cannot be deactivated",
-            )
+            raise BadRequestException("Superadmin account cannot be deactivated")
 
         user.is_active = False
         return await user_repo.save(user)

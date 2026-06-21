@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 from uuid import UUID
 from typing import Optional
 
 from app.models.product import Product
+from app.core.exceptions import NotFoundException
 from app.schemas.product import ProductCreate, ProductUpdate
 from app.schemas.common import PaginatedResponse
 from app.repositories.product_repository import ProductRepository
@@ -58,10 +58,7 @@ class ProductService:
         product_repo = ProductRepository(db)
         product = await product_repo.get_by_id_and_org(product_id, organization_id)
         if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Product not found",
-            )
+            raise NotFoundException("Product not found")
         return product
 
     @staticmethod
@@ -75,10 +72,7 @@ class ProductService:
         product = await product_repo.get_by_id_and_org(product_id, organization_id)
 
         if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Product not found",
-            )
+            raise NotFoundException("Product not found")
 
         for field, value in payload.model_dump(exclude_unset=True).items():
             setattr(product, field, value)
@@ -95,10 +89,7 @@ class ProductService:
         product = await product_repo.get_by_id_and_org(product_id, organization_id)
 
         if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Product not found",
-            )
+            raise NotFoundException("Product not found")
 
         product.is_active = False
         return await product_repo.save(product)
@@ -114,10 +105,7 @@ class ProductService:
         product = await product_repo.get_by_id_and_org(product_id, organization_id)
 
         if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Product not found",
-            )
+            raise NotFoundException("Product not found")
 
         product.image_urls = (product.image_urls or []) + urls
         return await product_repo.save(product)

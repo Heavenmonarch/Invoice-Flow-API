@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 from uuid import UUID
 
 from app.models.organization import Organization
+from app.core.exceptions import NotFoundException
 from app.schemas.organization import OrganizationUpdate
 from app.repositories.organization_repository import OrganizationRepository
 from app.repositories.user_repository import UserRepository
@@ -20,10 +20,7 @@ class OrganizationService:
         org_repo = OrganizationRepository(db)
         org = await org_repo.get_by_id(organization_id)
         if not org:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Organization not found",
-            )
+            raise NotFoundException("Organization not found")
         return org
 
     @staticmethod
@@ -36,10 +33,7 @@ class OrganizationService:
         org = await org_repo.get_by_id(organization_id)
 
         if not org:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Organization not found",
-            )
+            raise NotFoundException("Organization not found")
 
         for field, value in payload.model_dump(exclude_unset=True).items():
             setattr(org, field, value)
