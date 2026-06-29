@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     
+    REDIS_URL: str
+    
     
     class Config: 
         env_file = ".env"
