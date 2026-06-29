@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 from typing import Optional
 
@@ -12,6 +12,8 @@ from app.schemas.common import PaginatedResponse
 from app.repositories.product_repository import ProductRepository
 from app.repositories.sale_repository import SaleRepository
 from app.repositories.commission_repository import CommissionRepository
+from app.utils.pagination import paginate
+from app.utils.date import current_period
 
 
 class SaleService:
@@ -36,7 +38,7 @@ class SaleService:
         commission_rate = float(product.commission_rate)
         total_amount = round(unit_price * payload.quantity, 2)
         commission_amount = round(total_amount * (commission_rate / 100), 2)
-        period = datetime.now(timezone.utc).strftime("%Y-%m")
+        period = current_period()
 
         sale = Sale(
             organization_id=current_user.organization_id,
@@ -80,13 +82,7 @@ class SaleService:
             organization_id, staff_id, product_id,
             date_from, date_to, page, per_page,
         )
-        return PaginatedResponse(
-            items=sales,
-            total=total,
-            page=page,
-            per_page=per_page,
-            pages=-(-total // per_page),
-        )
+        return paginate(sales, total, page, per_page)
 
     @staticmethod
     async def get_sale(

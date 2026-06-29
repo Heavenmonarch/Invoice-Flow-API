@@ -8,6 +8,7 @@ from app.core.exceptions import NotFoundException, BadRequestException
 from app.schemas.commission import CommissionUpdate, CommissionSummary
 from app.schemas.common import PaginatedResponse
 from app.repositories.commission_repository import CommissionRepository
+from app.utils.pagination import paginate
 
 
 class CommissionService:
@@ -27,13 +28,7 @@ class CommissionService:
             organization_id, staff_id, period,
             commission_status, page, per_page,
         )
-        return PaginatedResponse(
-            items=commissions,
-            total=total,
-            page=page,
-            per_page=per_page,
-            pages=-(-total // per_page),
-        )
+        return paginate(commissions, total, page, per_page)
 
     @staticmethod
     async def get_commission(

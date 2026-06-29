@@ -7,6 +7,7 @@ from app.core.exceptions import NotFoundException
 from app.schemas.product import ProductCreate, ProductUpdate
 from app.schemas.common import PaginatedResponse
 from app.repositories.product_repository import ProductRepository
+from app.utils.pagination import paginate
 
 
 class ProductService:
@@ -41,13 +42,7 @@ class ProductService:
         products, total = await product_repo.list_by_org(
             organization_id, category, include_inactive, page, per_page
         )
-        return PaginatedResponse(
-            items=products,
-            total=total,
-            page=page,
-            per_page=per_page,
-            pages=-(-total // per_page),
-        )
+        return paginate(products, total, page, per_page)
 
     @staticmethod
     async def get_product(

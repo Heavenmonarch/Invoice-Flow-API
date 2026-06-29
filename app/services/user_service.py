@@ -11,6 +11,7 @@ from app.core.exceptions import (
 from app.schemas.user import UserCreate, UserUpdate
 from app.schemas.common import PaginatedResponse
 from app.repositories.user_repository import UserRepository
+from app.utils.pagination import paginate
 
 
 class UserService:
@@ -53,13 +54,7 @@ class UserService:
         users, total = await user_repo.list_by_org(
             organization_id, page, per_page
         )
-        return PaginatedResponse(
-            items=users,
-            total=total,
-            page=page,
-            per_page=per_page,
-            pages=-(-total // per_page),
-        )
+        return paginate(users, total, page, per_page)
 
     @staticmethod
     async def get_user(
