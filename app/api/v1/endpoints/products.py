@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 import uuid
@@ -8,6 +8,7 @@ from app.core.dependencies import get_current_active_staff, get_current_admin
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductUpdate, ProductOut
 from app.schemas.common import PaginatedResponse
+from app.utils.storage import upload_multiple_images
 from app.services.product_service import ProductService
 from pydantic import BaseModel
 
@@ -75,10 +76,12 @@ async def deactivate_product(
 @router.post("add-product-image/{product_id}/images", response_model=ProductOut)
 async def add_images(
     product_id: uuid.UUID,
-    payload: ImageUrlsPayload,
+    files: List[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin),
 ):
+    urls = await upload_multiple_images(files, folder="products")
+    
     return await ProductService.add_image_urls(
-        product_id, current_user.organization_id, payload.urls, db
+        product_id, current_user.organization_id, urls, db
     )

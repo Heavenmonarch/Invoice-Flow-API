@@ -97,3 +97,26 @@ async def upload_multiple_images(files: list[UploadFile], folder: str = "product
         urls.append(url)
     
     return urls
+
+
+# for deleting
+async def delete_image(url: str) -> None:
+    # Name should be self explanatory, no? Does nothing if the file doesn't exist
+    
+    if not url.startswith("/static/"):
+        return
+    
+    relative_path = url.replace("/static/", "", 1)
+    filepath = UPLOAD_DIR / relative_path
+    
+    try:
+        if filepath.exists():
+            filepath.unlink()
+            logger.info("Deleted local file: %s", filepath)
+    except OSError as e:
+        logger.error("Failed to delete file %s: %s", filepath, str(e))
+        
+        
+async def delete_multiple_images(urls: list[str]) -> None:
+    for url in urls:
+        await delete_image(url)
