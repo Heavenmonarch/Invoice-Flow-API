@@ -61,6 +61,39 @@ def _validate_image(filename: str, content: bytes) -> str:
 
 # uploading files
 async def upload_image(file: UploadFile, folder: str = "products") -> str:
-    pass
+    # validates and saves image to local uploads directory and returns a URL Pah that can be served through staticfiles which is in the main.py ile
+    
+    content = await file.read()
+    extension = _validate_image(file.filename or "", content)
+    
+    dest_dir = UPLOAD_DIR / folder
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    
+    filename = f"{uuid.uuid4()}.{extension}"
+    filepath = dest_dir /filename
+    
+    with open(filepath, "wb") as f:
+        f.write(content)
         
+    url = f"/static/{folder}/{filename}"
+    logger.info("Saved local file: %s", filepath)
+    return url
+
+
+async def upload_multiple_images(files: list[UploadFile], folder: str = "products") -> list[str]:
+    #upload multiple images, and return their URLS
+    
+    if len(files) > 10:
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum of 10 images allowed per upload",
+            code="TOO_MANY_FILES"
+        )
         
+    urls = []
+    
+    for file in files:
+        url = await upload_image(file, folder)
+        urls.append(url)
+    
+    return urls
