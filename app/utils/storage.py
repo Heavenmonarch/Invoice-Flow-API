@@ -1,6 +1,5 @@
 import uuid
 import os
-import shutil
 import logging
 from pathlib import Path
 from fastapi import UploadFile, status
@@ -42,7 +41,7 @@ def _validate_image(filename: str, content: bytes) -> str:
         
     if len(content) == 0:
         raise AppException(
-            status_code=status.HTTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file is empty",
             code="EMPTY_FILE"
         )

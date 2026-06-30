@@ -59,7 +59,7 @@ async def commission_summary(
     )
 
 
-@router.get("fetch-commission/{commission_id}", response_model=CommissionOut)
+@router.get("/fetch-commission/{commission_id}", response_model=CommissionOut)
 async def get_commission(
     commission_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -70,7 +70,7 @@ async def get_commission(
     )
 
 
-@router.patch("update-commission/{commission_id}", response_model=CommissionOut)
+@router.patch("/update-commission/{commission_id}", response_model=CommissionOut)
 async def update_commission_status(
     commission_id: uuid.UUID,
     payload: CommissionUpdate,

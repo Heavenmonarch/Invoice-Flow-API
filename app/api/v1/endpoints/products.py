@@ -41,7 +41,7 @@ async def list_products(
     )
 
 
-@router.get("fetch-product/{product_id}", response_model=ProductOut)
+@router.get("/fetch-product/{product_id}", response_model=ProductOut)
 async def get_product(
     product_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -50,7 +50,7 @@ async def get_product(
     return await ProductService.get_product(product_id, current_user.organization_id, db)
 
 
-@router.patch("update-product/{product_id}", response_model=ProductOut)
+@router.patch("/update-product/{product_id}", response_model=ProductOut)
 async def update_product(
     product_id: uuid.UUID,
     payload: ProductUpdate,
@@ -62,7 +62,7 @@ async def update_product(
     )
 
 
-@router.patch("deactivate-product/{product_id}/deactivate", response_model=ProductOut)
+@router.patch("/deactivate-product/{product_id}/deactivate", response_model=ProductOut)
 async def deactivate_product(
     product_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -73,7 +73,7 @@ async def deactivate_product(
     )
 
 
-@router.post("add-product-image/{product_id}/images", response_model=ProductOut)
+@router.post("/add-product-image/{product_id}/images", response_model=ProductOut)
 async def add_images(
     product_id: uuid.UUID,
     files: List[UploadFile] = File(...),

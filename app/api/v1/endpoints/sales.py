@@ -56,7 +56,7 @@ async def my_sales(
     )
 
 
-@router.get("fetch-sale/{sale_id}", response_model=SaleOut)
+@router.get("/fetch-sale/{sale_id}", response_model=SaleOut)
 async def get_sale(
     sale_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),

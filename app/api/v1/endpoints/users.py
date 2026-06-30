@@ -21,7 +21,7 @@ async def create_user(
     return await UserService.create_user(payload, current_user.organization_id, db)
 
 
-@router.get("list-user", response_model=PaginatedResponse[UserOut])
+@router.get("/list-user", response_model=PaginatedResponse[UserOut])
 async def list_users(
     page: int = 1,
     per_page: int = 20,

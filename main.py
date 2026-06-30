@@ -9,6 +9,9 @@ import logging
 from app.core.config import settings
 from app.core.database import init_db, close_db
 from app.core.exceptions import register_exception_handlers
+from app.middleware.correlation import CorrelationIDMiddleware
+from app.middleware.logging import RequestLoggingMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.api.v1.router import api_router
 
 
@@ -40,18 +43,30 @@ app = FastAPI(
 register_exception_handlers(app)
 
 
+os.makedirs("uploads", exist_ok=True)
+
+app.mount("/static", StaticFiles(directory="uploads"), name="static")
+
+
+
 # Middlewaree
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 app.add_middleware(
     TrustedHostMiddleware,
+    allowed_hosts=settings.ALLOWED_HOSTS,
 )
+
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(CorrelationIDMiddleware)
 
 
 # routes
@@ -62,8 +77,3 @@ app.include_router(api_router, prefix="/api/v1")
 @app.get("/health", tags=["Health"])
 async def health_check():
     return {"status": "ok", "version": "v1"}
-
-
-os.makedirs("uploads", exist_ok=True)
-
-app.mount("/static", StaticFiles(directory="uploads"), name="static")
