@@ -28,7 +28,7 @@ def slugify(name: str) -> str:
 class AuthService:
 
     @staticmethod
-    async def register(
+    async def register_organization(
         payload: OrganizationCreate,
         db: AsyncSession,
     ) -> Organization:
@@ -70,7 +70,7 @@ class AuthService:
         return org
 
     @staticmethod
-    async def login(
+    async def login_user(
         payload: LoginRequest,
         db: AsyncSession,
     ) -> TokenResponse:
