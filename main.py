@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.database import init_db, close_db
 from app.core.exceptions import register_exception_handlers
 from app.middleware.correlation import CorrelationIDMiddleware
-from app.middleware.logging import RequestLoggingMiddleware
+from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.api.v1.router import api_router
 

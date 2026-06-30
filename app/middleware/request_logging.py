@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 EXCLUDED_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
 
 
-class RequestLoggingMiddlewre(BaseHTTPMiddleware):
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
     Logs every request with method, path, status code, duration and correlation ID
     """
