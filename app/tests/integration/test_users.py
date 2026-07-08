@@ -7,7 +7,7 @@ async def test_create_user_as_admin(
     client: AsyncClient, test_org, test_admin, admin_token
 ):
     response = await client.post(
-        "/api/v1/create-user",
+        "/api/v1/users/create-user",
         json={
             "email": "newstaff@test.com",
             "full_name": "New Staff",
@@ -28,7 +28,7 @@ async def test_create_superadmin_role_fails(
     client: AsyncClient, admin_token
 ):
     response = await client.post(
-        "/api/v1/create-user",
+        "/api/v1/users/create-user",
         json={
             "email": "fake_super@test.com",
             "full_name": "Fake Super",
@@ -45,7 +45,7 @@ async def test_staff_cannot_create_user(
     client: AsyncClient, test_staff, staff_token
 ):
     response = await client.post(
-        "/api/v1/create-user",
+        "/api/v1/users/create-user",
         json={
             "email": "another@test.com",
             "full_name": "Another",
@@ -60,7 +60,7 @@ async def test_staff_cannot_create_user(
 @pytest.mark.asyncio
 async def test_list_users(client: AsyncClient, test_admin, admin_token):
     response = await client.get(
-        "/api/v1/list-users",
+        "/api/v1/users/list-users",
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 200
@@ -73,7 +73,7 @@ async def test_list_users(client: AsyncClient, test_admin, admin_token):
 @pytest.mark.asyncio
 async def test_get_me(client: AsyncClient, test_staff, staff_token):
     response = await client.get(
-        "/api/v1/user/my-profile",
+        "/api/v1/users/my-profile",
         headers={"Authorization": f"Bearer {staff_token}"},
     )
     assert response.status_code == 200
@@ -85,7 +85,7 @@ async def test_deactivate_user(
     client: AsyncClient, test_staff, admin_token
 ):
     response = await client.patch(
-        f"/user/{test_staff.id}/deactivate-user",
+        f"/users/{test_staff.id}/deactivate-user",
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 200

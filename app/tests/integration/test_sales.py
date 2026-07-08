@@ -24,7 +24,7 @@ async def test_submit_sale(
     client: AsyncClient, test_staff, test_product, staff_token
 ):
     response = await client.post(
-        "/api/v1/submit-sale",
+        "/api/v1/sales/submit-sale",
         json={
             "product_id": str(test_product.id),
             "quantity": 3,
@@ -48,7 +48,7 @@ async def test_submit_sale_inactive_product_fails(
     await db.commit()
 
     response = await client.post(
-        "/api/v1/submit-sale",
+        "/api/v1/sales/submit-sale",
         json={
             "product_id": str(test_product.id),
             "quantity": 1,
@@ -77,7 +77,7 @@ async def test_admin_can_list_all_sales(
     client: AsyncClient, test_admin, admin_token
 ):
     response = await client.get(
-        "/api/v1/list-sales",
+        "/api/v1/sales/list-sales",
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 200
