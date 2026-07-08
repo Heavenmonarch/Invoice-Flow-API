@@ -21,7 +21,7 @@ async def create_user(
     return await UserService.create_user(payload, current_user.organization_id, db)
 
 
-@router.get("/list-user", response_model=PaginatedResponse[UserOut])
+@router.get("/list-users", response_model=PaginatedResponse[UserOut])
 async def list_users(
     page: int = 1,
     per_page: int = 20,
@@ -31,7 +31,7 @@ async def list_users(
     return await UserService.list_users(db, current_user.organization_id, page, per_page)
 
 
-@router.get("/my-profile", response_model=UserOut)
+@router.get("/user/my-profile", response_model=UserOut)
 async def get_my_profile(
     current_user: User = Depends(get_current_active_staff),
 ):
@@ -57,7 +57,7 @@ async def update_user(
     return await UserService.update_user(user_id, payload, current_user.organization_id, db)
 
 
-@router.patch("/{user_id}/deactivate", response_model=UserOut)
+@router.patch("/user/{user_id}/deactivate-user", response_model=UserOut)
 async def deactivate_user(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
