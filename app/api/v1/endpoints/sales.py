@@ -22,7 +22,7 @@ async def submit_sale(
 ):
     return await SaleService.submit_sale(payload, current_user, db)
 
-
+ 
 @router.get("/list-sales", response_model=PaginatedResponse[SaleOut])
 async def list_sales(
     page: int = 1,
