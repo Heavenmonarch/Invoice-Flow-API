@@ -4,6 +4,12 @@ from app.models.user import UserRole
 from datetime import datetime
 
 
+class StaffInvite(BaseModel):
+    email: EmailStr
+    full_name: str
+    role: UserRole.STAFF
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str
