@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     
     
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
-    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "test", "testserver"]
     
     
     AWS_ACCESS_KEY_ID: str = ""

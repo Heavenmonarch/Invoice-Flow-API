@@ -36,7 +36,7 @@ async def test_admin_can_approve_commission(
 ):
     # a new sale is created, so that the commission for that sale can exist in this instance
     await client.post(
-        "/api/v1/sales/submit-sales",
+        "/api/v1/sales/submit-sale",
         json={"product_id": str(test_product.id), "quantity": 1},
         headers={"Authorization": f"Bearer {staff_token}"},
     )
@@ -50,7 +50,7 @@ async def test_admin_can_approve_commission(
 
     # Approve the commission
     response = await client.patch(
-        f"/api/v1/commissions/{commission_id}",
+        f"/api/v1/commissions/update-commission/{commission_id}",
         json={"status": "approved"},
         headers={"Authorization": f"Bearer {admin_token}"},
     )

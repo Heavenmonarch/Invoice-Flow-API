@@ -40,3 +40,5 @@ def period_range(start: str, end: str) -> list[str]:
         if month > 12:
             month = 1
             year += 1
+    
+    return periods

@@ -85,7 +85,7 @@ async def test_deactivate_user(
     client: AsyncClient, test_staff, admin_token
 ):
     response = await client.patch(
-        f"/users/{test_staff.id}/deactivate-user",
+        f"/api/v1/users/{test_staff.id}/deactivate-user",
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 200

@@ -4,7 +4,7 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_register_organization(client: AsyncClient):
-    response = await client.post("/api/v1/auth/register", json={
+    response = await client.post("/api/v1/auth/register-organization", json={
         "name": "Acme Corp",
         "email": "acme@test.com",
         "password": "Test@1234",
@@ -24,8 +24,8 @@ async def test_register_duplicate_email_fails(client: AsyncClient):
         "email": "duplicate@test.com",
         "password": "Test@1234",
     }
-    await client.post("/api/v1/auth/register", json=payload)
-    response = await client.post("/api/v1/auth/register", json=payload)
+    await client.post("/api/v1/auth/register-organization", json=payload)
+    response = await client.post("/api/v1/auth/register-organization", json=payload)
     assert response.status_code == 409
 
 

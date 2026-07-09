@@ -6,8 +6,7 @@ from datetime import datetime
 
 class UserCreate(BaseModel):
     email: EmailStr
-    firstname: str
-    lastname: str
+    full_name: str
     password: str
     role: UserRole = UserRole.STAFF
     
