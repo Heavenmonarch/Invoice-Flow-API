@@ -73,7 +73,7 @@ async def test_cannot_skip_to_paid_from_pending(
     )
     commission_id = commissions.json()["items"][0]["id"]
 
-    # Try to mark paid while still pending — must fail
+    # Try to mark paid while still pending will fail
     response = await client.patch(
         f"/api/v1/commissions/update-commission/{commission_id}",
         json={"status": "paid"},
