@@ -15,6 +15,7 @@ from app.models.user import User
 from app.models.product import Product
 from app.models.sale import Sale
 from app.models.commission import Commission
+from app.models.audit_log import AuditLog
 
 # Alembic config object
 config = context.config

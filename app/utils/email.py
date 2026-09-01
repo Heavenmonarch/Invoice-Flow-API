@@ -8,6 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 def _send_email(to: str, subject: str, html_body: str) -> None:
+    """
+    Core SMTP send function. All other email functions call this.
+    Fails silently with a logged error rather than crashing the request
+    a failed email should never block a successful API operation.
+    """
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
@@ -31,8 +36,7 @@ def _send_email(to: str, subject: str, html_body: str) -> None:
             to, subject, str(e)
         )
 
-
-
+#email templates
 
 def send_staff_invitation(
     to: str,
@@ -40,6 +44,10 @@ def send_staff_invitation(
     organization_name: str,
     temp_password: str,
 ) -> None:
+    """
+    Sent when an admin creates a new staff account.
+    Contains their login credentials.
+    """
     subject = f"Welcome to {organization_name} — Your Account Details"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -70,6 +78,7 @@ def send_commission_approved(
     amount: float,
     period: str,
 ) -> None:
+    """Sent to staff when an admin approves their commission."""
     subject = f"Your Commission for {period} Has Been Approved"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -96,6 +105,7 @@ def send_commission_paid(
     amount: float,
     period: str,
 ) -> None:
+    """Sent to staff when their commission is marked as paid."""
     subject = f"Your Commission for {period} Has Been Paid"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -122,6 +132,7 @@ def send_commission_disputed(
     period: str,
     notes: str = None,
 ) -> None:
+    """Sent to staff when their commission is marked as disputed."""
     subject = f"Your Commission for {period} Has Been Disputed"
     notes_section = f"""
         <div style="background: #FFF3CD; padding: 12px;
@@ -158,6 +169,7 @@ def send_admin_commission_disputed(
     amount: float,
     period: str,
 ) -> None:
+    """Sent to admin when a commission is marked disputed — so they know to act."""
     subject = f"Commission Dispute Raised — {staff_name} ({period})"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

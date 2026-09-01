@@ -7,7 +7,7 @@ from datetime import datetime
 class StaffInvite(BaseModel):
     email: EmailStr
     full_name: str
-    role: UserRole.STAFF
+    role: UserRole = UserRole.STAFF
 
 
 class UserCreate(BaseModel):
@@ -15,14 +15,14 @@ class UserCreate(BaseModel):
     full_name: str
     password: str
     role: UserRole = UserRole.STAFF
-    
-    
+
+
 class UserUpdate(BaseModel):
-    firstname: str | None = None
-    lastname: str | None = None
+    full_name: str | None = None
     email: EmailStr | None = None
     is_active: bool | None = None
-    
+
+
 class UserOut(BaseModel):
     id: uuid.UUID
     email: str
@@ -31,5 +31,5 @@ class UserOut(BaseModel):
     is_active: bool
     organization_id: uuid.UUID
     created_at: datetime
-    
+
     model_config = {"from_attributes": True}
