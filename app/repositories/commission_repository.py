@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.models.commission import Commission, CommissionStatus
 from app.models.user import User
+from app.models.sale import Sale
 from app.repositories.base_repository import BaseRepository
 from app.schemas.commission import CommissionSummary
 
@@ -93,6 +94,58 @@ class CommissionRepository(BaseRepository[Commission]):
                 total_commission=float(row.total_commission),
                 status=row.status,
             )
+            for row in rows
+        ]
+
+    async def get_export_data(
+        self,
+        organization_id: UUID,
+        period: str,
+    ) -> list[dict]:
+        """
+        Returns full commission data for a period formatted for export.
+        Joins commissions to users and sales to get email, revenue,
+        and commission totals per staff member.
+        Ordered by highest commission first so top performers
+        appear at the top of the report.
+        """
+        result = await self.db.execute(
+            select(
+                User.full_name,
+                User.email,
+                func.count(Commission.id).label("total_sales"),
+                func.sum(Sale.total_amount).label("total_amount"),
+                func.avg(
+                    Commission.amount / Sale.total_amount * 100
+                ).label("commission_rate"),
+                func.sum(Commission.amount).label("total_commission"),
+                Commission.status,
+            )
+            .join(User, User.id == Commission.staff_id)
+            .join(Sale, Sale.id == Commission.sale_id)
+            .where(
+                Commission.organization_id == organization_id,
+                Commission.period == period,
+            )
+            .group_by(
+                User.full_name,
+                User.email,
+                Commission.status,
+            )
+            .order_by(func.sum(Commission.amount).desc())
+        )
+
+        rows = result.all()
+        return [
+            {
+                "full_name": row.full_name,
+                "email": row.email,
+                "total_sales": row.total_sales,
+                "total_amount": float(row.total_amount or 0),
+                "commission_rate": float(row.commission_rate or 0),
+                "total_commission": float(row.total_commission or 0),
+                "status": row.status.value,
+            }
             for row in rows
         ]
 
