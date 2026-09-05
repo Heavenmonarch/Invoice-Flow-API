@@ -10,15 +10,32 @@ from app.core.security import (
     create_refresh_token,
     decode_token,
 )
+from app.utils.lockout import (
+    is_locked_out,
+    record_failed_attempt,
+    clear_failed_attempts,
+    get_remaining_attempts,
+    get_lockout_ttl,
+    LOCKOUT_WINDOW_SECONDS,
+)
 from app.core.exceptions import (
     ConflictException,
     UnauthorizedException,
     ForbiddenException,
+    AppException,
 )
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
 from app.schemas.organization import OrganizationCreate
 from app.repositories.organization_repository import OrganizationRepository
 from app.repositories.user_repository import UserRepository
+from app.utils.lockout import (
+    is_locked_out,
+    record_failed_attempt,
+    clear_failed_attempts,
+    get_remaining_attempts,
+    get_lockout_ttl,
+)
+from fastapi import status
 
 
 def slugify(name: str) -> str:
@@ -28,7 +45,7 @@ def slugify(name: str) -> str:
 class AuthService:
 
     @staticmethod
-    async def register_organization(
+    async def register(
         payload: OrganizationCreate,
         db: AsyncSession,
     ) -> Organization:
@@ -70,24 +87,61 @@ class AuthService:
         return org
 
     @staticmethod
-    async def login_user(
+    async def login(
         payload: LoginRequest,
         db: AsyncSession,
     ) -> TokenResponse:
         org_repo = OrganizationRepository(db)
         user_repo = UserRepository(db)
 
+        if await is_locked_out(payload.email):
+            ttl = await get_lockout_ttl(payload.email)
+            minutes = ttl // 60
+            seconds = ttl % 60
+            raise AppException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=(
+                    f"Account temporarily locked due to too many failed attempts. "
+                    f"Try again in {minutes}m {seconds}s."
+                ),
+                code="ACCOUNT_LOCKED",
+            )
+
+       
         user = await user_repo.get_by_email(payload.email)
 
+       
         if not user or not verify_password(payload.password, user.hashed_password):
-            raise UnauthorizedException("Invalid email or password")
+            # Record the failure regardless of whether email exists
+            # This prevents email enumeration via timing differences
+            await record_failed_attempt(payload.email)
+            remaining = await get_remaining_attempts(payload.email)
 
+            if remaining == 0:
+                raise AppException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=(
+                        "Too many failed attempts. "
+                        f"Account locked for {LOCKOUT_WINDOW_SECONDS // 60} minutes."
+                    ),
+                    code="ACCOUNT_LOCKED",
+                )
+
+            raise UnauthorizedException(
+                f"Invalid email or password. "
+                f"{remaining} attempt{'s' if remaining != 1 else ''} remaining."
+            )
+
+     
         if not user.is_active:
             raise ForbiddenException("This account has been deactivated")
 
         org = await org_repo.get_by_id(user.organization_id)
         if not org or not org.is_active:
             raise ForbiddenException("Organization is inactive or does not exist")
+
+    
+        await clear_failed_attempts(payload.email)
 
         access_token = create_access_token(
             subject=user.id,
