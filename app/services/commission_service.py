@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from uuid import UUID
 from typing import Optional
 
@@ -53,6 +52,7 @@ class CommissionService:
         if not commission:
             raise NotFoundException("Commission not found")
 
+        # Staff can only see their own commissions
         if (
             current_user.role == UserRole.STAFF
             and commission.staff_id != current_user.id
@@ -87,8 +87,8 @@ class CommissionService:
 
         if commission.status in invalid_transitions.get(payload.status, []):
             raise BadRequestException(
-                f"Cannot move commission from '{commission.status}'"
-                f" to '{payload.status}'"
+                f"Cannot move commission from '{commission.status.value}'"
+                f" to '{payload.status.value}'"
             )
 
         old_status = commission.status
@@ -96,9 +96,10 @@ class CommissionService:
         if payload.notes:
             commission.notes = payload.notes
 
-        # Fetch the staff member for email
+     
         staff = await user_repo.get_by_id(commission.staff_id)
 
+      
         await log_action(
             db=db,
             organization_id=current_user.organization_id,
@@ -112,12 +113,13 @@ class CommissionService:
                 "amount": float(commission.amount),
                 "period": commission.period,
                 "staff_id": str(commission.staff_id),
+                "staff_email": staff.email if staff else None,
             },
         )
 
+        
         result = await commission_repo.save(commission)
 
-        # Send emails AFTER commit
         if staff:
             if payload.status == CommissionStatus.APPROVED:
                 send_commission_approved(
@@ -126,6 +128,7 @@ class CommissionService:
                     amount=float(commission.amount),
                     period=commission.period,
                 )
+
             elif payload.status == CommissionStatus.PAID:
                 send_commission_paid(
                     to=staff.email,
@@ -133,7 +136,9 @@ class CommissionService:
                     amount=float(commission.amount),
                     period=commission.period,
                 )
+
             elif payload.status == CommissionStatus.DISPUTED:
+                # Notify the staff member their commission is disputed
                 send_commission_disputed(
                     to=staff.email,
                     full_name=staff.full_name,

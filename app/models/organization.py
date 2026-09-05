@@ -26,6 +26,7 @@ class Organization(Base, TimestampMixin):
         default=CommissionModel.PRICE_BASED,
         nullable=False,
     )
+    show_leaderboard: Mapped[bool] = mapped_column(Boolean, default=True)
 
     users: Mapped[list["User"]] = relationship(back_populates="organization")
     products: Mapped[list["Product"]] = relationship(back_populates="organization")
