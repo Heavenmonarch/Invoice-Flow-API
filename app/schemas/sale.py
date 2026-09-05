@@ -8,14 +8,14 @@ class SaleCreate(BaseModel):
     product_id: uuid.UUID
     quantity: int
     notes: Optional[str] = None
-    
+
     @field_validator("quantity")
     @classmethod
     def quantity_must_be_positive(cls, v):
         if v <= 0:
             raise ValueError("Quantity must be at least 1")
         return v
-    
+
 
 class SaleOut(BaseModel):
     id: uuid.UUID
@@ -23,11 +23,13 @@ class SaleOut(BaseModel):
     staff_id: uuid.UUID
     quantity: int
     unit_price: float
+    cost_price: Optional[float]
     total_amount: float
+    profit_amount: Optional[float]
     commission_rate: float
     commission_amount: float
+    commission_model: str
     notes: Optional[str]
     created_at: datetime
-    
-    
+
     model_config = {"from_attributes": True}
