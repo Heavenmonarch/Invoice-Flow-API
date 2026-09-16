@@ -8,6 +8,8 @@ from app.api.v1.endpoints import (
     organization,
     export,
     leaderboard,
+    webhooks,
+    targets,
 )
 
 api_router = APIRouter()
@@ -20,3 +22,4 @@ api_router.include_router(commissions.router,   prefix="/commissions",   tags=["
 api_router.include_router(organization.router,  prefix="/organization",  tags=["Organization"])
 api_router.include_router(export.router,        prefix="/export",        tags=["Export"])
 api_router.include_router(leaderboard.router,   prefix="/leaderboard",   tags=["Leaderboard"])
+api_router.include_router(targets.router, prefix="/targets", tags=["Targets"])
